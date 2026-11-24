@@ -37,6 +37,16 @@ python src/credential_manager.py login \
 python src/credential_manager.py check
 ```
 
+Prompt `getpass` sengaja tidak menampilkan karakter dan hanya bekerja pada konsol interaktif.
+Jika terminal tidak menerima ketikan/paste, simpan token ke file teks lalu pakai:
+
+```bash
+python src/credential_manager.py login \
+  --base-url https://techno-sonar.berijalan.id \
+  --credentials-path D:\User\.omp\sonar_credentials.json \
+  --token-file D:\User\.omp\sonar_token.txt
+```
+
 Rotasi manual tanpa browser:
 
 ```bash

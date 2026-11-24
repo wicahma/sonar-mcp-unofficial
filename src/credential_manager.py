@@ -127,9 +127,25 @@ def cmd_login(args: argparse.Namespace) -> int:
     print(
         "\nLogin via GitLab terjadi di browser (OAuth menghasilkan sesi browser, bukan token Web API).\n"
         "Setelah login, buka: My Account -> Security -> Generate Tokens\n"
-        "Buat token dengan tipe USER (bukan project token), lalu tempel di bawah ini."
+        "Buat token dengan tipe USER (bukan project token). Token bisa diberikan lewat\n"
+        "--token-file <path> (disarankan) atau --token <token>; tanpa itu diminta lewat prompt."
     )
-    token = getpass.getpass("SonarQube USER token: ").strip()
+    token = (args.token or "").strip()
+    token_file = (args.token_file or "").strip()
+    if not token and token_file:
+        try:
+            with open(token_file, encoding="utf-8") as handle:
+                token = handle.read().strip()
+        except OSError as exc:
+            print(f"Gagal membaca --token-file: {exc}")
+            return 1
+    if not token:
+        print(
+            "\nCatatan: prompt getpass sengaja tidak menampilkan karakter apa pun dan hanya bekerja\n"
+            "pada konsol interaktif. Bila terminal tidak menerima input, simpan token ke file dan\n"
+            "jalankan ulang dengan --token-file <path>."
+        )
+        token = getpass.getpass("SonarQube USER token: ").strip()
     if not token:
         print("Token kosong; tidak ada yang disimpan.")
         return 1
