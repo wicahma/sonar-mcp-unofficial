@@ -51,6 +51,18 @@ def _flow_summary(flows: object) -> str:
     return "\n".join(lines)
 
 
+def _rule_sections(rule: dict) -> dict[str, str]:
+    sections = {}
+    for section in rule.get("descriptionSections") or []:
+        if not isinstance(section, dict):
+            continue
+        key = section.get("key") or ""
+        text = html_to_text(section.get("content") or section.get("htmlContent"))
+        if key and text:
+            sections[key] = text
+    return sections
+
+
 def sonar_list_issues(
     project: str | None = None,
     branch: str | None = None,
@@ -83,7 +95,7 @@ def sonar_list_issues(
         items.append(
             {
                 "key": issue.get("key"),
-                "rule_key": issue.get("ruleKey"),
+                "rule_key": issue.get("ruleKey") or issue.get("rule"),
                 "project": issue.get("project"),
                 "component": issue.get("component"),
                 "line": line,
@@ -112,20 +124,21 @@ def sonar_get_issue_detail(issue_key: str) -> dict:
         if isinstance(component, dict) and component.get("key"):
             paths[component["key"]] = component.get("path")
 
-    rule_key = issue.get("ruleKey")
+    rule_key = issue.get("ruleKey") or issue.get("rule")
     rule = {}
     if rule_key:
         for candidate in data.get("rules", []) or []:
             if isinstance(candidate, dict) and candidate.get("key") == rule_key:
                 rule = candidate
                 break
-        if not rule:
-            try:
-                rule_result = get_client().request("GET", "/api/rules/show", params={"key": rule_key})
-                if isinstance(rule_result, dict):
-                    rule = rule_result.get("rule") if isinstance(rule_result.get("rule"), dict) else rule_result
-            except SonarError:
-                rule = {}
+        try:
+            rule_result = get_client().request("GET", "/api/rules/show", params={"key": rule_key})
+            if isinstance(rule_result, dict):
+                full_rule = rule_result.get("rule")
+                if isinstance(full_rule, dict):
+                    rule = {**rule, **full_rule}
+        except SonarError:
+            pass
 
     text_range = issue.get("textRange")
     if not isinstance(text_range, dict):
@@ -141,12 +154,28 @@ def sonar_get_issue_detail(issue_key: str) -> dict:
         },
     }
 
+    sections = _rule_sections(rule)
     message = str(issue.get("message") or "").strip()
-    why_parts = [part for part in (message, html_to_text(rule.get("htmlDesc"))) if part]
+    why_parts = [
+        part
+        for part in (
+            message,
+            html_to_text(rule.get("htmlDesc")),
+            sections.get("introduction"),
+            sections.get("root_cause"),
+        )
+        if part
+    ]
+    fix_sections = [
+        text
+        for key, text in sections.items()
+        if any(word in key.lower() for word in ("how", "fix", "solution"))
+    ]
     fix_parts = [
         part
         for part in (
             html_to_text(rule.get("htmlExample") or rule.get("htmlExampleDesc")),
+            *fix_sections,
             _flow_summary(issue.get("flows")),
         )
         if part

@@ -46,7 +46,7 @@ class ToolTests(unittest.TestCase):
                     "issues": [
                         {
                             "key": "AX-1",
-                            "ruleKey": "squid:S1172",
+                            "rule": "squid:S1172",
                             "project": "p1",
                             "component": "p1:src/A.java",
                             "message": "Remove unused parameter",
@@ -83,6 +83,10 @@ class ToolTests(unittest.TestCase):
                         "name": "Unused parameters should be removed",
                         "htmlDesc": "<p>Why <b>unused</b> param</p>",
                         "htmlExample": "<pre>Do this</pre>",
+                        "descriptionSections": [
+                            {"key": "introduction", "content": "<p>Intro from section</p>"},
+                            {"key": "how_to_fix", "content": "<p>Fix from section</p>"},
+                        ],
                     }
                 },
             }
@@ -93,9 +97,12 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(detail["location"]["path"], "src/A.java")
         self.assertEqual(detail["location"]["textRange"]["startLine"], 12)
         self.assertEqual(detail["rule_name"], "Unused parameters should be removed")
+        self.assertEqual(detail["rule_key"], "squid:S1172")
         self.assertIn("Why unused param", detail["why"])
         self.assertNotIn("<p>", detail["why"])
         self.assertIn("Do this", detail["how_to_fix"])
+        self.assertIn("Intro from section", detail["why"])
+        self.assertIn("Fix from section", detail["how_to_fix"])
         self.assertIn("p1:src/A.java:20", detail["how_to_fix"])
         self.assertIsNone(detail["resolution"])
         self.assertEqual(detail["transitions"], ["falsepositive", "confirm"])

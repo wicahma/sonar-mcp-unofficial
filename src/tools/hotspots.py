@@ -65,7 +65,7 @@ def sonar_get_hotspot_detail(hotspot_key: str) -> dict:
     data = result if isinstance(result, dict) else {}
     rule = data.get("rule") if isinstance(data.get("rule"), dict) else {}
 
-    why_source = rule.get("vulnerabilityDescription") or rule.get("htmlDesc")
+    why_source = rule.get("vulnerabilityDescription") or rule.get("riskDescription") or rule.get("htmlDesc")
     how_source = (
         rule.get("fixRecommendations")
         or rule.get("htmlExample")
