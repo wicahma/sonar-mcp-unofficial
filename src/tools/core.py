@@ -33,13 +33,13 @@ def sonar_search_projects(q: str | None = None, page: int = 1, page_size: int = 
     params: dict = {"p": page, "ps": page_size}
     path = "/api/projects/search_my_projects"
     if q is not None:
-        path = "/api/projects/search"
+        path = "/api/components/search_projects"
         params["q"] = q
     result = get_client().request("GET", path, params=params)
     data = result if isinstance(result, dict) else {}
     paging = data.get("paging") if isinstance(data.get("paging"), dict) else {}
     projects = []
-    for item in data.get("projects", []) or []:
+    for item in data.get("projects", []) or data.get("components", []) or []:
         if not isinstance(item, dict):
             continue
         projects.append({"key": item.get("key"), "name": item.get("name")})

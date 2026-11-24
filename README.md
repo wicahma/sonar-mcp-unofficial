@@ -117,11 +117,12 @@ Saat memakai tool dari agent, cari project key dulu dengan `sonar_search_project
 ## Verifikasi
 
 ```bash
-python src/credential_manager.py check
+python src/credential_manager.py check --credentials-path D:\User\.omp\sonar_credentials.json
 python src/doctor.py
 python -m unittest discover -s tests -v
 ```
 
 `doctor.py` melakukan probe read-only ke `/api/server/version`, `/api/authentication/validate`,
-`/api/users/current`, dan `/api/projects/search?ps=1`, lalu mencetak ringkasan JSON tanpa token.
-Unit test memakai fixture offline—tidak ada network call.
+`/api/users/current`, dan `/api/components/search_projects?ps=1`, lalu mencetak ringkasan JSON tanpa token.
+`sonar_search_projects(q=...)` memakai `/api/components/search_projects`; `/api/projects/search`
+butuh privilege admin dan mengembalikan 403 untuk user biasa. Unit test memakai fixture offline—tidak ada network call.

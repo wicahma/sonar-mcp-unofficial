@@ -115,9 +115,6 @@ def cmd_login(args: argparse.Namespace) -> int:
     if not base_url:
         print("login membutuhkan --base-url (URL web SonarQube, mis. https://techno-sonar.berijalan.id).")
         return 1
-    if args.credentials_path:
-        os.environ["SONAR_CREDENTIALS_PATH"] = args.credentials_path
-
     print(f"Membuka browser ke {base_url} ...")
     try:
         webbrowser.open(base_url)
@@ -167,9 +164,10 @@ def main() -> int:
     parser.add_argument("--base-url", help="URL SonarQube (mis. https://techno-sonar.berijalan.id)")
     parser.add_argument("--token", help="USER token SonarQube")
     parser.add_argument("--token-file", help="Path file yang berisi USER token SonarQube")
-    parser.add_argument("--credentials-path", help="Path file kredensial JSON untuk login")
+    parser.add_argument("--credentials-path", help="Path file kredensial JSON")
     args = parser.parse_args()
-
+    if args.credentials_path:
+        os.environ["SONAR_CREDENTIALS_PATH"] = args.credentials_path
     if args.action == "check":
         return cmd_check(args)
     if args.action == "login":

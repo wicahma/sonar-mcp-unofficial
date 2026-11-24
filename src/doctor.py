@@ -12,7 +12,7 @@ def main() -> int:
         version = client.request("GET", "/api/server/version")
         auth = client.request("GET", "/api/authentication/validate")
         user = client.request("GET", "/api/users/current")
-        projects = client.request("GET", "/api/projects/search", params={"ps": 1})
+        projects = client.request("GET", "/api/components/search_projects", params={"ps": 1})
 
         paging = projects.get("paging") if isinstance(projects, dict) else {}
         summary = {
